@@ -20,13 +20,13 @@ In either variant, the initial creation and filling of the session is not measur
 
 This is the raw JMH result from my laptop (quad-core i7 w/ Fedora 33, OpenJDK 15):
 
-Benchmark                   (algo)   Mode  Cnt       Score       Error  Units
-MyBenchmark.changeComputer     DRL  thrpt   25  152419,851 ± 16520,207  ops/s
-MyBenchmark.changeComputer    CS-B  thrpt   25  333145,932 ± 28443,935  ops/s
-MyBenchmark.changeComputer    CS-D  thrpt   25   41909,513 ±  7576,061  ops/s
-MyBenchmark.swapComputers      DRL  thrpt   25  132066,952 ± 16783,980  ops/s
-MyBenchmark.swapComputers     CS-B  thrpt   25  262115,845 ± 12672,076  ops/s
-MyBenchmark.swapComputers     CS-D  thrpt   25   39348,012 ±  3376,390  ops/s
+  Benchmark                   (algo)   Mode  Cnt       Score       Error  Units
+  MyBenchmark.changeComputer     DRL  thrpt   25  152419,851 ± 16520,207  ops/s
+  MyBenchmark.changeComputer    CS-B  thrpt   25  333145,932 ± 28443,935  ops/s
+  MyBenchmark.changeComputer    CS-D  thrpt   25   41909,513 ±  7576,061  ops/s
+  MyBenchmark.swapComputers      DRL  thrpt   25  132066,952 ± 16783,980  ops/s
+  MyBenchmark.swapComputers     CS-B  thrpt   25  262115,845 ± 12672,076  ops/s
+  MyBenchmark.swapComputers     CS-D  thrpt   25   39348,012 ±  3376,390  ops/s
 
 # V1 (See Git history)
 
@@ -37,10 +37,10 @@ This benchmark has two variants:
 
 This is the raw JMH result from my laptop (quad-core i7 w/ Fedora 33, OpenJDK 15):
 
-Benchmark                (algo)   Mode  Cnt    Score    Error  Units
-MyBenchmark.allAtOnce       DRL  thrpt   25  338,101 ± 17,071  ops/s
-MyBenchmark.allAtOnce      CS-B  thrpt   25  844,079 ± 29,981  ops/s
-MyBenchmark.allAtOnce      CS-D  thrpt   25  121,823 ±  6,200  ops/s
-MyBenchmark.incremental     DRL  thrpt   25  154,339 ±  9,140  ops/s
-MyBenchmark.incremental    CS-B  thrpt   25  537,381 ± 23,206  ops/s
-MyBenchmark.incremental    CS-D  thrpt   25   59,895 ±  2,430  ops/s
+  Benchmark                (algo)   Mode  Cnt    Score    Error  Units
+  MyBenchmark.allAtOnce       DRL  thrpt   25  338,101 ± 17,071  ops/s
+  MyBenchmark.allAtOnce      CS-B  thrpt   25  844,079 ± 29,981  ops/s
+  MyBenchmark.allAtOnce      CS-D  thrpt   25  121,823 ±  6,200  ops/s
+  MyBenchmark.incremental     DRL  thrpt   25  154,339 ±  9,140  ops/s
+  MyBenchmark.incremental    CS-B  thrpt   25  537,381 ± 23,206  ops/s
+  MyBenchmark.incremental    CS-D  thrpt   25   59,895 ±  2,430  ops/s
