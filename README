@@ -1,0 +1,25 @@
+In this directory:
+
+* First run `mvn clean install` to compile the JMH benchmark.
+* Then run `java -jar target/benchmarks.jar` to execute the JMH benchmark.
+
+This benchmark has two variants:
+
+* "incremental" inserts every planning entity individually and evaluates after every insert.
+* "allAtOnce" first inserts every planning entity and then evaluates once.
+
+The benchmark runs in three scenarios:
+
+* "DRL" is a pure Drools rule with accumulate.
+* CS-D uses a constraint stream with groupBy() and the Drools impl.
+* CS-B uses the same constraint stream, but switches to Bavet impl.
+
+This is the raw JMH result from my laptop (quad-core i7 w/ Fedora 33):
+
+Benchmark                (algo)   Mode  Cnt    Score    Error  Units
+MyBenchmark.allAtOnce       DRL  thrpt   25  338,101 ± 17,071  ops/s
+MyBenchmark.allAtOnce      CS-B  thrpt   25  844,079 ± 29,981  ops/s
+MyBenchmark.allAtOnce      CS-D  thrpt   25  121,823 ±  6,200  ops/s
+MyBenchmark.incremental     DRL  thrpt   25  154,339 ±  9,140  ops/s
+MyBenchmark.incremental    CS-B  thrpt   25  537,381 ± 23,206  ops/s
+MyBenchmark.incremental    CS-D  thrpt   25   59,895 ±  2,430  ops/s
