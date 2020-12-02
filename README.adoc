@@ -1,3 +1,5 @@
+# Simple comparison of incremental `groupBy()` for CS-B, CS-D and DRL
+
 In this directory:
 
 * First run `mvn clean install` to compile the JMH benchmark.
@@ -9,7 +11,7 @@ The benchmark runs in three scenarios:
 * CS-D uses a constraint stream with groupBy() and the Drools impl.
 * CS-B uses the same constraint stream, but switches to Bavet impl.
 
-= V2
+== V2
 
 This benchmark has two variants:
 
@@ -28,7 +30,7 @@ This is the raw JMH result from my laptop (quad-core i7 w/ Fedora 33, OpenJDK 15
   MyBenchmark.swapComputers     CS-B  thrpt   25  262115,845 ± 12672,076  ops/s
   MyBenchmark.swapComputers     CS-D  thrpt   25   39348,012 ±  3376,390  ops/s
 
-= V1 (See Git history)
+== V1 (See Git history)
 
 This benchmark has two variants:
 
