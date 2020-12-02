@@ -6,6 +6,8 @@ interface Session {
 
     int insert(Object object);
 
+    int update(Object object);
+
     HardSoftScore calculateScore();
 
     void close();

@@ -4,6 +4,7 @@ import org.drools.modelcompiler.ExecutableModelProject;
 import org.kie.api.KieBase;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.kie.internal.builder.conf.PropertySpecificOption;
 import org.kie.internal.event.rule.RuleEventManager;
 import org.kie.internal.utils.KieHelper;
@@ -59,6 +60,13 @@ final class DroolsSession implements Session {
     public int insert(Object object) {
         session.insert(object);
         return 0;
+    }
+
+    @Override
+    public int update(Object object) {
+        FactHandle handle = session.getFactHandle(object);
+        session.update(handle,object);
+        return 1;
     }
 
     @Override

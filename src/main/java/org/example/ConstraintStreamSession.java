@@ -41,6 +41,12 @@ final class ConstraintStreamSession implements Session {
     }
 
     @Override
+    public int update(Object object) {
+        session.update(object);
+        return 1;
+    }
+
+    @Override
     public HardSoftScore calculateScore() {
         return session.calculateScore(0);
     }

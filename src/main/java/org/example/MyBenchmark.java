@@ -68,6 +68,8 @@ public class MyBenchmark {
     public String algo;
     // This is a thin wrapper around KieSession.
     private Session session = null;
+    private CloudProcess process1 = null;
+    private CloudProcess process2 = null;
 
     private static CloudBalance getSolution() {
         CloudBalance originalSolution = new CloudBalanceXmlSolutionFileIO()
@@ -100,30 +102,40 @@ public class MyBenchmark {
     @Setup(Level.Invocation)
     public void setUp() {
         session = getSession(algo);
-        // Insert all computer facts into the session. No need to be incremental.
+        // Insert all facts into the session. No need to be incremental.
         FULL_SOLUTION.getComputerList().forEach(session::insert);
+        List<CloudProcess> allProcesses = FULL_SOLUTION.getProcessList();
+        allProcesses.forEach(session::insert);
+        session.calculateScore();
+        // Pick two random processes to benchmark.
+        int random = Math.max(1, RANDOM.nextInt(allProcesses.size()));
+        process1 = allProcesses.get(random);
+        process2 = allProcesses.get(random - 1);
     }
 
     @TearDown(Level.Invocation)
     public void tearDown() {
         session.close();
         session = null;
+        process1 = null;
+        process2 = null;
     }
 
     @Benchmark
-    public Blackhole incremental(Blackhole bh) {
-        for (CloudProcess process : FULL_SOLUTION.getProcessList()) {
-            bh.consume(session.insert(process));
-            bh.consume(session.calculateScore());
-        }
+    public Blackhole swapComputers(Blackhole bh) {
+        CloudComputer oldComputer = process1.getComputer();
+        process1.setComputer(process2.getComputer());
+        process2.setComputer(oldComputer);
+        bh.consume(session.update(process1));
+        bh.consume(session.update(process2));
+        bh.consume(session.calculateScore());
         return bh;
     }
 
     @Benchmark
-    public Blackhole allAtOnce(Blackhole bh) {
-        for (CloudProcess process : FULL_SOLUTION.getProcessList()) {
-            bh.consume(session.insert(process));
-        }
+    public Blackhole changeComputer(Blackhole bh) {
+        process1.setComputer(process2.getComputer());
+        bh.consume(session.update(process1));
         bh.consume(session.calculateScore());
         return bh;
     }
