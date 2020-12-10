@@ -11,6 +11,11 @@ The benchmark runs in three scenarios:
 * CS-D uses a constraint stream with groupBy() and the Drools impl.
 * CS-B uses the same constraint stream, but switches to Bavet impl.
 
+== V3
+
+Adds a fourth scenario called "EM". This one takes Mario's optimal groupBy exec model and compares it against all the
+other scenarios.
+
 == V2
 
 This benchmark has two variants:

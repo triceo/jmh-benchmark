@@ -14,7 +14,7 @@ import org.optaplanner.core.impl.score.director.drools.DroolsScoreDirectorFactor
 import org.optaplanner.core.impl.score.director.drools.OptaPlannerRuleEventListener;
 import org.optaplanner.examples.cloudbalancing.domain.CloudBalance;
 
-final class DroolsSession implements Session {
+final class DrlSession implements Session {
 
     private static final String DRL = "import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;\n" +
             "import org.optaplanner.examples.cloudbalancing.domain.CloudComputer;\n" +
@@ -38,7 +38,7 @@ final class DroolsSession implements Session {
     private final KieSession session;
     private final HardSoftScoreHolderImpl scoreHolder;
 
-    public DroolsSession() {
+    public DrlSession() {
         session = SDF.newKieSession();
         ((RuleEventManager) session).addEventListener(new OptaPlannerRuleEventListener());
         scoreHolder = new HardSoftScoreHolderImpl(false);

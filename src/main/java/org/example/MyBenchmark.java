@@ -64,7 +64,7 @@ public class MyBenchmark {
 
     static final CloudBalance FULL_SOLUTION = getSolution();
 
-    @Param({"DRL", "CS-B", "CS-D"})
+    @Param({"EM", "DRL", "CS-D", "CS-B"})
     public String algo;
     // This is a thin wrapper around KieSession.
     private Session session = null;
@@ -93,7 +93,9 @@ public class MyBenchmark {
             case "CS-B":
                 return new ConstraintStreamSession(ConstraintStreamImplType.BAVET);
             case "DRL":
-                return new DroolsSession();
+                return new DrlSession();
+            case "EM":
+                return new ExecModelSession();
             default:
                 throw new UnsupportedOperationException();
         }
