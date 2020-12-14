@@ -7,21 +7,22 @@ In this directory:
 
 The benchmark runs in three scenarios:
 
-* "DRL" is a pure Drools rule with accumulate.
-* CS-D uses a constraint stream with groupBy() and the Drools impl.
-* CS-B uses the same constraint stream, but switches to Bavet impl.
+* "EM-GN" is a pure Drools exec model where groupBy is implemented using a dedicated Phreak node.
+* "EM-3R" is a pure Drools exec model where groupBy is implemented using a 3-rule solution.
+* "DRL" is a DRL-based rule with accumulate.
+* "CS-D" uses a constraint stream with groupBy() and the Drools impl.
+* "CS-B" uses the same constraint stream, but switches to Bavet impl.
 
 == V3
 
-Adds a fourth scenario called "EM". This one takes Mario's optimal groupBy exec model and compares it against all the
-other scenarios.
+Adds two more scenarios, "EM-GN" and "EM-3R".
 
 == V2
 
 This benchmark has two variants:
 
 * "changeComputer" picks a `CloudProcess` at random and updates the `CloudComputer` for another one. Updates 1 fact.
-* "swapComputers" picks two `CloudProcess` at random and swaps their `CloudComputer`s. Updates 2 facts.
+* "swapComputers" picks two `CloudProcess` at random and swaps their `CloudComputer` instances. Updates 2 facts.
 
 In either variant, the initial creation and filling of the session is not measured.
 

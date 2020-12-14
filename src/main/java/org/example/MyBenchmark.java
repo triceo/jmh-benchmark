@@ -39,12 +39,14 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
 import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
@@ -54,7 +56,9 @@ import org.optaplanner.examples.cloudbalancing.domain.CloudProcess;
 import org.optaplanner.examples.cloudbalancing.persistence.CloudBalanceXmlSolutionFileIO;
 
 @State(Scope.Benchmark)
-@Fork(jvmArgs = {"-Xms2G", "-Xmx2G"})
+@Warmup(iterations = 10)
+@Measurement(iterations = 20)
+@Fork(value = 1, jvmArgs = {"-Xms4G", "-Xmx4G"})
 @BenchmarkMode(Mode.Throughput)
 public class MyBenchmark {
 
@@ -64,8 +68,9 @@ public class MyBenchmark {
 
     static final CloudBalance FULL_SOLUTION = getSolution();
 
-    @Param({"EM", "DRL", "CS-D", "CS-B"})
+    @Param({"EM-GN", "EM-3R", "DRL", "CS-D", "CS-B"})
     public String algo;
+
     // This is a thin wrapper around KieSession.
     private Session session = null;
     private CloudProcess process1 = null;
@@ -94,14 +99,16 @@ public class MyBenchmark {
                 return new ConstraintStreamSession(ConstraintStreamImplType.BAVET);
             case "DRL":
                 return new DrlSession();
-            case "EM":
-                return new ExecModelSession();
+            case "EM-GN":
+                return new ExecModelSession(true);
+            case "EM-3R":
+                return new ExecModelSession(false);
             default:
                 throw new UnsupportedOperationException();
         }
     }
 
-    @Setup(Level.Invocation)
+    @Setup(Level.Trial)
     public void setUp() {
         session = getSession(algo);
         // Insert all facts into the session. No need to be incremental.
@@ -115,7 +122,7 @@ public class MyBenchmark {
         process2 = allProcesses.get(random - 1);
     }
 
-    @TearDown(Level.Invocation)
+    @TearDown(Level.Trial)
     public void tearDown() {
         session.close();
         session = null;
@@ -131,14 +138,28 @@ public class MyBenchmark {
         bh.consume(session.update(process1));
         bh.consume(session.update(process2));
         bh.consume(session.calculateScore());
+
+        oldComputer = process1.getComputer();
+        process1.setComputer(process2.getComputer());
+        process2.setComputer(oldComputer);
+        bh.consume(session.update(process1));
+        bh.consume(session.update(process2));
+        bh.consume(session.calculateScore());
+
         return bh;
     }
 
     @Benchmark
     public Blackhole changeComputer(Blackhole bh) {
+        CloudComputer oldComputer = process1.getComputer();
         process1.setComputer(process2.getComputer());
         bh.consume(session.update(process1));
         bh.consume(session.calculateScore());
+
+        process1.setComputer(oldComputer);
+        bh.consume(session.update(process1));
+        bh.consume(session.calculateScore());
+
         return bh;
     }
 }

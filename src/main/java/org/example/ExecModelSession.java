@@ -23,9 +23,8 @@ import org.optaplanner.examples.cloudbalancing.domain.CloudProcess;
 final class ExecModelSession implements Session {
 
     public static Model requiredCpuPowerTotal_GroupBy() {
-        final Global<HardSoftScoreHolder> var_scoreHolder = D.globalOf( HardSoftScoreHolder.class, "" );
+        final Global<HardSoftScoreHolder> var_scoreHolder = D.globalOf( HardSoftScoreHolder.class, "defaultpkg", "scoreHolder" );
         final Variable<CloudComputer> var_$computer = D.declarationOf(CloudComputer.class);
-        final Variable<Integer> var_$cpuPower = D.declarationOf(Integer.class, "$cpuPower");
         final Variable<CloudProcess> var_$process = D.declarationOf(CloudProcess.class);
         final Variable<Integer> var_$requiredCpuPower = D.declarationOf(Integer.class, "$requiredCpuPower");
         final Variable<Integer> var_$requiredCpuPowerTotal = D.declarationOf(Integer.class);
@@ -33,14 +32,14 @@ final class ExecModelSession implements Session {
         org.drools.model.Rule rule = D.rule("requiredCpuPowerTotal")
                 .build(
                         D.groupBy(
-                                D.pattern(var_$process).bind(var_$requiredCpuPower, ( CloudProcess _this) -> _this.getRequiredCpuPower()),
+                                D.pattern(var_$process).expr("a", $process -> $process.getComputer() != null).bind(var_$requiredCpuPower, (CloudProcess _this) -> _this.getRequiredCpuPower()),
                                 var_$process, var_$computer, CloudProcess::getComputer,
                                 D.accFunction(org.drools.core.base.accumulators.IntegerSumAccumulateFunction::new, var_$requiredCpuPower).as(var_$requiredCpuPowerTotal)
                         ),
-                        D.pattern(var_$requiredCpuPowerTotal).expr("b", var_$cpuPower, ( Integer $requiredCpuPowerTotal, Integer $cpuPower) -> org.drools.modelcompiler.util.EvaluationUtil.greaterThanNumbers($requiredCpuPowerTotal, $cpuPower)),
-                        D.on(var_$cpuPower, var_$requiredCpuPowerTotal, var_scoreHolder).execute(( Drools drools, Integer $cpuPower, Integer $requiredCpuPowerTotal, HardSoftScoreHolder scoreHolder) -> {
+                        D.pattern(var_$requiredCpuPowerTotal).expr("b", var_$computer, ( Integer $requiredCpuPowerTotal, CloudComputer $computer) -> org.drools.modelcompiler.util.EvaluationUtil.greaterThanNumbers($requiredCpuPowerTotal, $computer.getCpuPower())),
+                        D.on(var_$computer, var_$requiredCpuPowerTotal, var_scoreHolder).execute(( Drools drools, CloudComputer $computer, Integer $requiredCpuPowerTotal, HardSoftScoreHolder scoreHolder) -> {
                             {
-                                scoreHolder.addHardConstraintMatch((org.kie.api.runtime.rule.RuleContext) drools, $cpuPower - $requiredCpuPowerTotal);
+                                scoreHolder.addHardConstraintMatch((org.kie.api.runtime.rule.RuleContext) drools, $computer.getCpuPower() - $requiredCpuPowerTotal);
                             }
                         }));
         final ModelImpl model = new ModelImpl();
@@ -48,16 +47,17 @@ final class ExecModelSession implements Session {
         model.addRule(rule);
         return model;
     }
-    private static final DroolsScoreDirectorFactory<CloudBalance, ?> SDF =
-            new DroolsScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, buildKieBase());
+
     private final KieSession session;
     private final HardSoftScoreHolderImpl scoreHolder;
 
-    public ExecModelSession() {
-        session = SDF.newKieSession();
+    public ExecModelSession(boolean usegroupbynode) {
+        DroolsScoreDirectorFactory<CloudBalance, ?> scoreDirectorFactory =
+                new DroolsScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, buildKieBase(usegroupbynode));
+        session = scoreDirectorFactory.newKieSession();
         ((RuleEventManager) session).addEventListener(new OptaPlannerRuleEventListener());
         scoreHolder = new HardSoftScoreHolderImpl(false);
-        SDF.getRuleToConstraintWeightExtractorMap().forEach((rule, extractor) -> {
+        scoreDirectorFactory.getRuleToConstraintWeightExtractorMap().forEach((rule, extractor) -> {
             HardSoftScore constraintWeight = (HardSoftScore) extractor.apply(MyBenchmark.FULL_SOLUTION);
             MyBenchmark.SOLUTION_DESCRIPTOR.validateConstraintWeight(rule.getPackageName(), rule.getName(), constraintWeight);
             scoreHolder.configureConstraintWeight(rule, constraintWeight);
@@ -65,8 +65,13 @@ final class ExecModelSession implements Session {
         session.setGlobal("scoreHolder", scoreHolder);
     }
 
-    private static KieBase buildKieBase() {
-        return KieBaseBuilder.createKieBaseFromModel(requiredCpuPowerTotal_GroupBy());
+    private static KieBase buildKieBase(boolean usegroupbynode) {
+        try {
+            System.setProperty( "drools.usegroupbynode", "" + usegroupbynode );
+            return KieBaseBuilder.createKieBaseFromModel( requiredCpuPowerTotal_GroupBy() );
+        } finally {
+            System.clearProperty( "drools.usegroupbynode" );
+        }
     }
 
     @Override
