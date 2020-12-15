@@ -58,7 +58,7 @@ import org.optaplanner.examples.cloudbalancing.persistence.CloudBalanceXmlSoluti
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
 @Measurement(iterations = 20)
-@Fork(value = 1, jvmArgs = {"-Xms4G", "-Xmx4G"})
+@Fork(value = 5, jvmArgs = {"-Xms4G", "-Xmx4G"})
 @BenchmarkMode(Mode.Throughput)
 public class MyBenchmark {
 
@@ -68,7 +68,7 @@ public class MyBenchmark {
 
     static final CloudBalance FULL_SOLUTION = getSolution();
 
-    @Param({"EM-GN", "EM-3R", "DRL", "CS-D", "CS-B"})
+    @Param({"DRL", "CS-D", "CS-B"})
     public String algo;
 
     // This is a thin wrapper around KieSession.
@@ -99,10 +99,6 @@ public class MyBenchmark {
                 return new ConstraintStreamSession(ConstraintStreamImplType.BAVET);
             case "DRL":
                 return new DrlSession();
-            case "EM-GN":
-                return new ExecModelSession(true);
-            case "EM-3R":
-                return new ExecModelSession(false);
             default:
                 throw new UnsupportedOperationException();
         }

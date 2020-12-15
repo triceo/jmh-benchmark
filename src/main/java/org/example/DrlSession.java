@@ -6,12 +6,9 @@ import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.internal.builder.conf.PropertySpecificOption;
-import org.kie.internal.event.rule.RuleEventManager;
 import org.kie.internal.utils.KieHelper;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.impl.score.buildin.hardsoft.HardSoftScoreHolderImpl;
 import org.optaplanner.core.impl.score.director.drools.DroolsScoreDirectorFactory;
-import org.optaplanner.core.impl.score.director.drools.OptaPlannerRuleEventListener;
 import org.optaplanner.examples.cloudbalancing.domain.CloudBalance;
 
 final class DrlSession implements Session {
@@ -22,32 +19,17 @@ final class DrlSession implements Session {
             "global HardSoftScoreHolder scoreHolder;\n" +
             "rule \"requiredCpuPowerTotal\"\n" +
             "    when\n" +
-            "        $computer : CloudComputer($cpuPower : cpuPower)\n" +
-            "        accumulate(\n" +
-            "            CloudProcess(\n" +
-            "                computer == $computer,\n" +
-            "                $requiredCpuPower : requiredCpuPower);\n" +
-            "            $requiredCpuPowerTotal : sum($requiredCpuPower);\n" +
-            "            $requiredCpuPowerTotal > $cpuPower\n" +
-            "        )\n" +
+            "        $computer : CloudComputer()\n" +
+            "        CloudProcess(computer == $computer)\n" +
             "    then\n" +
-            "        scoreHolder.addHardConstraintMatch(kcontext, $cpuPower - $requiredCpuPowerTotal);\n" +
+            "        // don't do anything\n" +
             "end\n";
     private static final DroolsScoreDirectorFactory<CloudBalance, ?> SDF =
             new DroolsScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, buildKieBase());
     private final KieSession session;
-    private final HardSoftScoreHolderImpl scoreHolder;
 
     public DrlSession() {
         session = SDF.newKieSession();
-        ((RuleEventManager) session).addEventListener(new OptaPlannerRuleEventListener());
-        scoreHolder = new HardSoftScoreHolderImpl(false);
-        SDF.getRuleToConstraintWeightExtractorMap().forEach((rule, extractor) -> {
-            HardSoftScore constraintWeight = (HardSoftScore) extractor.apply(MyBenchmark.FULL_SOLUTION);
-            MyBenchmark.SOLUTION_DESCRIPTOR.validateConstraintWeight(rule.getPackageName(), rule.getName(), constraintWeight);
-            scoreHolder.configureConstraintWeight(rule, constraintWeight);
-        });
-        session.setGlobal("scoreHolder", scoreHolder);
     }
 
     private static KieBase buildKieBase() {
@@ -71,8 +53,8 @@ final class DrlSession implements Session {
 
     @Override
     public HardSoftScore calculateScore() {
-        session.fireAllRules();
-        return scoreHolder.extractScore(0);
+        int fireCount = session.fireAllRules();
+        return HardSoftScore.ofHard(fireCount);
     }
 
     @Override
