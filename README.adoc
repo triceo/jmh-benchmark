@@ -17,6 +17,18 @@ The benchmark runs in three scenarios:
 
 Adds two more scenarios, "EM-GN" and "EM-3R".
 
+    Benchmark                          (algo)   Mode  Cnt       Score       Error  Units
+    MyBenchmark.changeComputer          EM-GN  thrpt  100  156568,383 ± 12254,883  ops/s
+    MyBenchmark.changeComputer          EM-3R  thrpt  100  169038,646 ±  4914,846  ops/s
+    MyBenchmark.changeComputer            DRL  thrpt  100  324326,788 ± 17542,877  ops/s
+    MyBenchmark.changeComputer           CS-D  thrpt  100  121571,253 ±  5140,169  ops/s
+    MyBenchmark.changeComputer           CS-B  thrpt  100  721492,402 ± 16747,433  ops/s
+    MyBenchmark.swapComputers           EM-GN  thrpt  100  118337,412 ±  2750,775  ops/s
+    MyBenchmark.swapComputers           EM-3R  thrpt  100  113697,884 ±  2867,728  ops/s
+    MyBenchmark.swapComputers             DRL  thrpt  100  222022,809 ±  5751,235  ops/s
+    MyBenchmark.swapComputers            CS-D  thrpt  100  101545,318 ±  7616,797  ops/s
+    MyBenchmark.swapComputers            CS-B  thrpt  100  535520,232 ± 26086,712  ops/s
+
 == V2
 
 This benchmark has two variants:
