@@ -68,7 +68,7 @@ public class MyBenchmark {
 
     static final CloudBalance FULL_SOLUTION = getSolution();
 
-    @Param({"DRL", "CS-D", "CS-B"})
+    @Param({"DRL", "CS-B"})
     public String algo;
 
     // This is a thin wrapper around KieSession.
