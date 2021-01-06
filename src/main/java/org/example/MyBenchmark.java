@@ -31,29 +31,13 @@
 
 package org.example;
 
-import java.io.File;
-import java.util.List;
-import java.util.Random;
-
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
 import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
-import org.optaplanner.examples.cloudbalancing.domain.CloudBalance;
-import org.optaplanner.examples.cloudbalancing.domain.CloudComputer;
-import org.optaplanner.examples.cloudbalancing.domain.CloudProcess;
-import org.optaplanner.examples.cloudbalancing.persistence.CloudBalanceXmlSolutionFileIO;
+
+import java.util.List;
+import java.util.Random;
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
@@ -63,40 +47,30 @@ import org.optaplanner.examples.cloudbalancing.persistence.CloudBalanceXmlSoluti
 public class MyBenchmark {
 
     private static final Random RANDOM = new Random();
-    static final SolutionDescriptor<CloudBalance> SOLUTION_DESCRIPTOR =
-            SolutionDescriptor.buildSolutionDescriptor(CloudBalance.class, CloudProcess.class);
+    static final SolutionDescriptor<MySolution> SOLUTION_DESCRIPTOR =
+            SolutionDescriptor.buildSolutionDescriptor(MySolution.class, MyFact.class);
 
-    static final CloudBalance FULL_SOLUTION = getSolution();
+    static final MySolution SOLUTION_100 = MySolution.generate(100);
+    static final MySolution SOLUTION_1K = MySolution.generate(1000);
+    static final MySolution SOLUTION_10K = MySolution.generate(10000);
 
     @Param({"DRL", "CS-B"})
     public String algo;
 
+    @Param({"100", "1000", "10000"})
+    public int size;
+
     // This is a thin wrapper around KieSession.
     private Session session = null;
-    private CloudProcess process1 = null;
-    private CloudProcess process2 = null;
+    private MyFact fact1 = null;
+    private MyFact fact2 = null;
 
-    private static CloudBalance getSolution() {
-        CloudBalance originalSolution = new CloudBalanceXmlSolutionFileIO()
-                .read(new File("1600computers-4800processes.xml"));
-        List<CloudComputer> computers = originalSolution.getComputerList();
-        // Initialize the solution randomly.
-        for (CloudProcess cloudProcess : originalSolution.getProcessList()) {
-            boolean initialize = (RANDOM.nextInt(100) > 5); // 95 % will be initialized.
-            if (!initialize) {
-                continue;
-            }
-            cloudProcess.setComputer(computers.get(RANDOM.nextInt(computers.size())));
-        }
-        return originalSolution;
-    }
-
-    private static Session getSession(String algo) {
+    private static Session getSession(String algo, MySolution solution) {
         switch (algo) {
             case "CS-D":
-                return new ConstraintStreamSession(ConstraintStreamImplType.DROOLS);
+                return new ConstraintStreamSession(ConstraintStreamImplType.DROOLS, solution);
             case "CS-B":
-                return new ConstraintStreamSession(ConstraintStreamImplType.BAVET);
+                return new ConstraintStreamSession(ConstraintStreamImplType.BAVET, solution);
             case "DRL":
                 return new DrlSession();
             default:
@@ -104,56 +78,69 @@ public class MyBenchmark {
         }
     }
 
+    private MySolution getSolution() {
+        switch (size) {
+            case 100:
+                return SOLUTION_100;
+            case 1000:
+                return SOLUTION_1K;
+            case 10000:
+                return SOLUTION_10K;
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
     @Setup(Level.Trial)
     public void setUp() {
-        session = getSession(algo);
+        MySolution solution = getSolution();
+        session = getSession(algo, solution);
         // Insert all facts into the session. No need to be incremental.
-        FULL_SOLUTION.getComputerList().forEach(session::insert);
-        List<CloudProcess> allProcesses = FULL_SOLUTION.getProcessList();
-        allProcesses.forEach(session::insert);
+        List<MyFact> allFacts = solution.getFacts();
+        allFacts.forEach(session::insert);
         session.calculateScore();
         // Pick two random processes to benchmark.
-        int random = Math.max(1, RANDOM.nextInt(allProcesses.size()));
-        process1 = allProcesses.get(random);
-        process2 = allProcesses.get(random - 1);
+        int random = Math.max(1, RANDOM.nextInt(allFacts.size()));
+        fact1 = allFacts.get(random);
+        fact2 = allFacts.get(random - 1);
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
         session.close();
         session = null;
-        process1 = null;
-        process2 = null;
+        fact1 = null;
+        fact2 = null;
     }
 
     @Benchmark
-    public Blackhole swapComputers(Blackhole bh) {
-        CloudComputer oldComputer = process1.getComputer();
-        process1.setComputer(process2.getComputer());
-        process2.setComputer(oldComputer);
-        bh.consume(session.update(process1));
-        bh.consume(session.update(process2));
+    public Blackhole swap(Blackhole bh) {
+        String oldValue = fact1.getVariable();
+        fact1.setVariable(fact2.getVariable());
+        fact2.setVariable(oldValue);
+        bh.consume(session.update(fact1));
+        bh.consume(session.update(fact2));
         bh.consume(session.calculateScore());
 
-        oldComputer = process1.getComputer();
-        process1.setComputer(process2.getComputer());
-        process2.setComputer(oldComputer);
-        bh.consume(session.update(process1));
-        bh.consume(session.update(process2));
+        oldValue = fact1.getVariable();
+        fact1.setVariable(fact2.getVariable());
+        fact2.setVariable(oldValue);
+        bh.consume(session.update(fact1));
+        bh.consume(session.update(fact2));
         bh.consume(session.calculateScore());
 
         return bh;
     }
 
     @Benchmark
-    public Blackhole changeComputer(Blackhole bh) {
-        CloudComputer oldComputer = process1.getComputer();
-        process1.setComputer(process2.getComputer());
-        bh.consume(session.update(process1));
+    public Blackhole change(Blackhole bh) {
+        String oldValue = fact1.getVariable();
+        fact1.setVariable(fact2.getVariable());
+        bh.consume(session.update(fact1));
         bh.consume(session.calculateScore());
 
-        process1.setComputer(oldComputer);
-        bh.consume(session.update(process1));
+        fact1.setVariable(oldValue);
+        bh.consume(session.update(fact1));
         bh.consume(session.calculateScore());
 
         return bh;

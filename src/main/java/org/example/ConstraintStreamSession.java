@@ -1,38 +1,33 @@
 package org.example;
 
-import java.util.function.Function;
-
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
 import org.optaplanner.core.api.score.stream.Constraint;
 import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
 import org.optaplanner.core.api.score.stream.Joiners;
 import org.optaplanner.core.impl.score.director.stream.ConstraintStreamScoreDirectorFactory;
 import org.optaplanner.core.impl.score.stream.ConstraintSession;
-import org.optaplanner.examples.cloudbalancing.domain.CloudBalance;
-import org.optaplanner.examples.cloudbalancing.domain.CloudComputer;
-import org.optaplanner.examples.cloudbalancing.domain.CloudProcess;
 
 final class ConstraintStreamSession implements Session {
 
     private static final ConstraintProvider CONSTRAINT_PROVIDER = constraintFactory -> new Constraint[]{
-            constraintFactory.fromUnfiltered(CloudComputer.class)
-                    .join(CloudProcess.class, Joiners.equal(Function.identity(), CloudProcess::getComputer))
-                    .penalize("requiredCpuPowerTotal", HardSoftScore.ONE_HARD)
+            constraintFactory.fromUnfiltered(MyFact.class)
+                    .join(MyFact.class, Joiners.greaterThan(MyFact::getId))
+                    .penalize("Join", SimpleScore.ONE)
     }; // Scoring is still fully enabled, so the comparison isn't entirely fair.
-    private static final ConstraintStreamScoreDirectorFactory<CloudBalance, ?> CSB_SDF =
+    private static final ConstraintStreamScoreDirectorFactory<MySolution, ?> CSB_SDF =
             new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, CONSTRAINT_PROVIDER,
                     ConstraintStreamImplType.BAVET);
-    private static final ConstraintStreamScoreDirectorFactory<CloudBalance, ?> CSD_SDF =
+    private static final ConstraintStreamScoreDirectorFactory<MySolution, ?> CSD_SDF =
             new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, CONSTRAINT_PROVIDER,
                     ConstraintStreamImplType.DROOLS);
-    private final ConstraintSession<CloudBalance, HardSoftScore> session;
+    private final ConstraintSession<MySolution, SimpleScore> session;
 
-    public ConstraintStreamSession(ConstraintStreamImplType constraintStreamImplType) {
-        ConstraintStreamScoreDirectorFactory<CloudBalance, ?> scoreDirectorFactory =
+    public ConstraintStreamSession(ConstraintStreamImplType constraintStreamImplType, MySolution solution) {
+        ConstraintStreamScoreDirectorFactory<MySolution, ?> scoreDirectorFactory =
                 constraintStreamImplType == ConstraintStreamImplType.DROOLS ? CSD_SDF : CSB_SDF;
-        session = (ConstraintSession<CloudBalance, HardSoftScore>) scoreDirectorFactory
-                .newConstraintStreamingSession(false, MyBenchmark.FULL_SOLUTION);
+        session = (ConstraintSession<MySolution, SimpleScore>) scoreDirectorFactory
+                .newConstraintStreamingSession(false, solution);
     }
 
     @Override
@@ -48,7 +43,7 @@ final class ConstraintStreamSession implements Session {
     }
 
     @Override
-    public HardSoftScore calculateScore() {
+    public SimpleScore calculateScore() {
         return session.calculateScore(0);
     }
 

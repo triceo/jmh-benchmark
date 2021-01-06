@@ -7,24 +7,23 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.internal.builder.conf.PropertySpecificOption;
 import org.kie.internal.utils.KieHelper;
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
+import org.optaplanner.core.api.score.buildin.simple.SimpleScoreHolder;
 import org.optaplanner.core.impl.score.director.drools.DroolsScoreDirectorFactory;
-import org.optaplanner.examples.cloudbalancing.domain.CloudBalance;
 
 final class DrlSession implements Session {
 
-    private static final String DRL = "import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;\n" +
-            "import org.optaplanner.examples.cloudbalancing.domain.CloudComputer;\n" +
-            "import org.optaplanner.examples.cloudbalancing.domain.CloudProcess;\n" +
-            "global HardSoftScoreHolder scoreHolder;\n" +
-            "rule \"requiredCpuPowerTotal\"\n" +
+    private static final String DRL = "import " + SimpleScoreHolder.class.getCanonicalName() + ";\n" +
+            "import " + MyFact.class.getCanonicalName() + ";\n" +
+            "global SimpleScoreHolder scoreHolder;\n" +
+            "rule \"Join\"\n" +
             "    when\n" +
-            "        $computer : CloudComputer()\n" +
-            "        CloudProcess(computer == $computer)\n" +
+            "        $fact : MyFact()\n" +
+            "        MyFact(id > $fact.id)\n" +
             "    then\n" +
             "        // don't do anything\n" +
             "end\n";
-    private static final DroolsScoreDirectorFactory<CloudBalance, ?> SDF =
+    private static final DroolsScoreDirectorFactory<MySolution, ?> SDF =
             new DroolsScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, buildKieBase());
     private final KieSession session;
 
@@ -52,9 +51,9 @@ final class DrlSession implements Session {
     }
 
     @Override
-    public HardSoftScore calculateScore() {
+    public SimpleScore calculateScore() {
         int fireCount = session.fireAllRules();
-        return HardSoftScore.ofHard(fireCount);
+        return SimpleScore.of(fireCount);
     }
 
     @Override
