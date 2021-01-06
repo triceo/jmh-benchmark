@@ -31,6 +31,8 @@
 
 package org.example;
 
+import org.example.domain.MyFact;
+import org.example.domain.MySolution;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;

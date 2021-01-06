@@ -1,6 +1,8 @@
 package org.example;
 
 import org.drools.modelcompiler.ExecutableModelProject;
+import org.example.domain.MyFact;
+import org.example.domain.MySolution;
 import org.kie.api.KieBase;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;

@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.domain.MyFact;
+import org.example.domain.MySolution;
 import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
 import org.optaplanner.core.api.score.stream.Constraint;
 import org.optaplanner.core.api.score.stream.ConstraintProvider;

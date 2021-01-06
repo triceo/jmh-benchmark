@@ -1,4 +1,4 @@
-package org.example;
+package org.example.domain;
 
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
 import org.optaplanner.core.api.domain.solution.PlanningScore;
