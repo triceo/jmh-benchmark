@@ -39,55 +39,46 @@ import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
 import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
 @Measurement(iterations = 20)
-@Fork(value = 5, jvmArgs = {"-Xms4G", "-Xmx4G"})
+@Fork(value = 5, jvmArgs = {"-Xms16G", "-Xmx16G"})
 @BenchmarkMode(Mode.Throughput)
 public class MyBenchmark {
 
-    private static final Random RANDOM = new Random();
+    public static final Random RANDOM = new Random();
     static final SolutionDescriptor<MySolution> SOLUTION_DESCRIPTOR =
             SolutionDescriptor.buildSolutionDescriptor(MySolution.class, MyFact.class);
 
-    static final MySolution SOLUTION_100 = MySolution.generate(100);
-    static final MySolution SOLUTION_1K = MySolution.generate(1000);
-    static final MySolution SOLUTION_10K = MySolution.generate(10000);
-
-    @Param({"DRL", "CS-B"})
+    @Param({"CS-B", "DRL"})
     public String algo;
 
     @Param({"100", "1000", "10000"})
-    public int size;
+    public int factCount;
+
+    @Param({"1", "10", "50"})
+    public int joinRatio;
+
+    @Param({"1", "2"}) // Bavet does not yet support quad join.
+    public int joinCount;
 
     // This is a thin wrapper around KieSession.
+    private MySolution solution = null;
     private Session session = null;
     private MyFact fact1 = null;
     private MyFact fact2 = null;
 
-    private static Session getSession(String algo, MySolution solution) {
+    private Session getSession(MySolution solution) {
         switch (algo) {
             case "CS-D":
-                return new ConstraintStreamSession(ConstraintStreamImplType.DROOLS, solution);
+                return new ConstraintStreamSession(ConstraintStreamImplType.DROOLS, solution, joinCount);
             case "CS-B":
-                return new ConstraintStreamSession(ConstraintStreamImplType.BAVET, solution);
+                return new ConstraintStreamSession(ConstraintStreamImplType.BAVET, solution, joinCount);
             case "DRL":
-                return new DrlSession();
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
-    private MySolution getSolution() {
-        switch (size) {
-            case 100:
-                return SOLUTION_100;
-            case 1000:
-                return SOLUTION_1K;
-            case 10000:
-                return SOLUTION_10K;
+                return new DrlSession(joinCount);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -95,56 +86,45 @@ public class MyBenchmark {
 
     @Setup(Level.Trial)
     public void setUp() {
-        MySolution solution = getSolution();
-        session = getSession(algo, solution);
+        solution = MySolution.generate(factCount, joinRatio);
+        session = getSession(solution);
         // Insert all facts into the session. No need to be incremental.
-        List<MyFact> allFacts = solution.getFacts();
-        allFacts.forEach(session::insert);
+        solution.getFacts().forEach(session::insert);
         session.calculateScore();
-        // Pick two random processes to benchmark.
-        int random = Math.max(1, RANDOM.nextInt(allFacts.size()));
-        fact1 = allFacts.get(random);
-        fact2 = allFacts.get(random - 1);
+    }
+
+    @Setup(Level.Invocation)
+    public void pickFacts() {
+        // Pick two random facts to benchmark; happens frequently to fairly distribute among the joined and non-joined.
+        // This simulates OptaPlanner which would also choose the facts mostly at random.
+        List<MyFact> allFacts = solution.getFacts();
+        fact1 = allFacts.get(RANDOM.nextInt(factCount));
+        do {
+            fact2 = allFacts.get(RANDOM.nextInt(factCount));
+        } while (Objects.equals(fact1, fact2));
+    }
+
+    @TearDown(Level.Invocation)
+    public void removeFacts() {
+        fact1 = null;
+        fact2 = null;
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
         session.close();
         session = null;
-        fact1 = null;
-        fact2 = null;
     }
 
     @Benchmark
-    public Blackhole swap(Blackhole bh) {
+    public Blackhole swapTwo(Blackhole bh) {
         String oldValue = fact1.getVariable();
         fact1.setVariable(fact2.getVariable());
         fact2.setVariable(oldValue);
         bh.consume(session.update(fact1));
         bh.consume(session.update(fact2));
         bh.consume(session.calculateScore());
-
-        oldValue = fact1.getVariable();
-        fact1.setVariable(fact2.getVariable());
-        fact2.setVariable(oldValue);
-        bh.consume(session.update(fact1));
-        bh.consume(session.update(fact2));
-        bh.consume(session.calculateScore());
-
         return bh;
     }
 
-    @Benchmark
-    public Blackhole change(Blackhole bh) {
-        String oldValue = fact1.getVariable();
-        fact1.setVariable(fact2.getVariable());
-        bh.consume(session.update(fact1));
-        bh.consume(session.calculateScore());
-
-        fact1.setVariable(oldValue);
-        bh.consume(session.update(fact1));
-        bh.consume(session.calculateScore());
-
-        return bh;
-    }
 }

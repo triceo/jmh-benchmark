@@ -3,31 +3,48 @@ package org.example;
 import org.example.domain.MyFact;
 import org.example.domain.MySolution;
 import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
-import org.optaplanner.core.api.score.stream.Constraint;
-import org.optaplanner.core.api.score.stream.ConstraintProvider;
-import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
-import org.optaplanner.core.api.score.stream.Joiners;
+import org.optaplanner.core.api.score.stream.*;
 import org.optaplanner.core.impl.score.director.stream.ConstraintStreamScoreDirectorFactory;
 import org.optaplanner.core.impl.score.stream.ConstraintSession;
 
 final class ConstraintStreamSession implements Session {
 
-    private static final ConstraintProvider CONSTRAINT_PROVIDER = constraintFactory -> new Constraint[]{
-            constraintFactory.fromUnfiltered(MyFact.class)
-                    .join(MyFact.class, Joiners.greaterThan(MyFact::getId))
-                    .penalize("Join", SimpleScore.ONE)
-    }; // Scoring is still fully enabled, so the comparison isn't entirely fair.
-    private static final ConstraintStreamScoreDirectorFactory<MySolution, ?> CSB_SDF =
-            new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, CONSTRAINT_PROVIDER,
-                    ConstraintStreamImplType.BAVET);
-    private static final ConstraintStreamScoreDirectorFactory<MySolution, ?> CSD_SDF =
-            new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, CONSTRAINT_PROVIDER,
-                    ConstraintStreamImplType.DROOLS);
     private final ConstraintSession<MySolution, SimpleScore> session;
 
-    public ConstraintStreamSession(ConstraintStreamImplType constraintStreamImplType, MySolution solution) {
+    private static Constraint getConstraint(ConstraintFactory constraintFactory, int joinCount) {
+        switch (joinCount) {
+            case 1:
+                return constraintFactory.fromUnfiltered(MyFact.class)
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                        .penalize("Join", SimpleScore.ONE);
+            case 2:
+                return constraintFactory.fromUnfiltered(MyFact.class)
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
+                        .penalize("Join", SimpleScore.ONE);
+            case 3:
+                return constraintFactory.fromUnfiltered(MyFact.class)
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
+                        .join(constraintFactory.fromUnfiltered(MyFact.class),
+                                Joiners.lessThanOrEqual((f1, f2, f3) -> f3.getJoinUntilId(), MyFact::getId))
+                        .penalize("Join", SimpleScore.ONE);
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    public ConstraintStreamSession(ConstraintStreamImplType implType, MySolution solution, int joinCount) {
+        ConstraintProvider constraints = constraintFactory -> new Constraint[]{
+                getConstraint(constraintFactory, joinCount)
+        };
         ConstraintStreamScoreDirectorFactory<MySolution, ?> scoreDirectorFactory =
-                constraintStreamImplType == ConstraintStreamImplType.DROOLS ? CSD_SDF : CSB_SDF;
+                new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, constraints, implType);
         session = (ConstraintSession<MySolution, SimpleScore>) scoreDirectorFactory
                 .newConstraintStreamingSession(false, solution);
     }
@@ -35,13 +52,13 @@ final class ConstraintStreamSession implements Session {
     @Override
     public int insert(Object object) {
         session.insert(object);
-        return 0;
+        return MyBenchmark.RANDOM.nextInt();
     }
 
     @Override
     public int update(Object object) {
         session.update(object);
-        return 1;
+        return MyBenchmark.RANDOM.nextInt();
     }
 
     @Override

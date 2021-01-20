@@ -16,6 +16,7 @@ public final class MyFact {
 
     @PlanningId
     private final long id;
+    private final long joinUntilId;
 
     @PlanningVariable(valueRangeProviderRefs = "values")
     private String variable = UUID.randomUUID().toString();
@@ -25,12 +26,17 @@ public final class MyFact {
             .limit(3)
             .collect(Collectors.toSet());
 
-    public MyFact(final long id) {
+    public MyFact(final long id, final long joinUntilId) {
         this.id = id;
+        this.joinUntilId = joinUntilId;
     }
 
     public long getId() {
         return id;
+    }
+
+    public long getJoinUntilId() {
+        return joinUntilId;
     }
 
     public String getVariable() {
