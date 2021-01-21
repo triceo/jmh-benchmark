@@ -16,23 +16,23 @@ final class ConstraintStreamSession implements Session {
             case 1:
                 return constraintFactory.fromUnfiltered(MyFact.class)
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                                Joiners.equal(MyFact::getJoinId))
                         .penalize("Join", SimpleScore.ONE);
             case 2:
                 return constraintFactory.fromUnfiltered(MyFact.class)
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                                Joiners.lessThanOrEqual(MyFact::getJoinId, MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
+                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
                         .penalize("Join", SimpleScore.ONE);
             case 3:
                 return constraintFactory.fromUnfiltered(MyFact.class)
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
+                                Joiners.lessThanOrEqual(MyFact::getJoinId, MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
+                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2, f3) -> f3.getJoinUntilId(), MyFact::getId))
+                                Joiners.lessThanOrEqual((f1, f2, f3) -> f3.getJoinId(), MyFact::getJoinId))
                         .penalize("Join", SimpleScore.ONE);
             default:
                 throw new UnsupportedOperationException();

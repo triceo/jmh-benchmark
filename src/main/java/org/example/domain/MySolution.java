@@ -6,9 +6,9 @@ import org.optaplanner.core.api.domain.solution.PlanningSolution;
 import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
 import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -16,10 +16,13 @@ import java.util.stream.IntStream;
 public final class MySolution {
 
     public static MySolution generate(int factCount, int joinRatio) {
-        BigDecimal ratio = BigDecimal.valueOf(joinRatio).divide(BigDecimal.valueOf(100));
-        long factsToInclude = Math.min(factCount, Math.max(1, ratio.multiply(BigDecimal.valueOf(factCount)).intValue()));
+        if (joinRatio < 1 || joinRatio > 100) {
+            throw new IllegalStateException("Invalid join ratio: " + joinRatio);
+        }
+        int idsAvailable = (int) Math.round(100.0 / joinRatio);
+        Random random = new Random();
         List<MyFact> facts = IntStream.range(0, factCount)
-                .mapToObj(id -> new MyFact(id, factsToInclude))
+                .mapToObj(id -> new MyFact(id, random.nextInt(idsAvailable)))
                 .collect(Collectors.toList());
         return new MySolution(facts);
     }

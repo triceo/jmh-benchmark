@@ -28,14 +28,14 @@ final class DrlSession implements Session {
                 "rule \"Join\"\n" +
                 "    when\n" +
                 "        $fact1 : MyFact()\n" +
-                "        $fact2 : MyFact(id <= $fact1.joinUntilId)\n";
+                "        $fact2 : MyFact(joinId == $fact1.joinId)\n";
         if (joinCount > 1) {
             drl +=
-                    "        $fact3 : MyFact(id <= $fact2.joinUntilId)\n";
+                    "        $fact3 : MyFact(joinId == $fact2.joinId)\n";
         }
         if (joinCount > 2) {
             drl +=
-                    "        $fact4 : MyFact(id <= $fact3.joinUntilId)\n";
+                    "        $fact4 : MyFact(joinId == $fact3.joinId)\n";
         }
         return drl +
                 "    then\n" +
