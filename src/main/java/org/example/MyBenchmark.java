@@ -44,8 +44,7 @@ import java.util.Random;
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
-@Measurement(iterations = 20)
-@Fork(value = 5, jvmArgs = {"-Xms16G", "-Xmx16G"})
+@Fork(value = 5, jvmArgs = {"-Xms4G", "-Xmx4G"})
 @BenchmarkMode(Mode.Throughput)
 public class MyBenchmark {
 
