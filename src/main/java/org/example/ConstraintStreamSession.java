@@ -21,18 +21,18 @@ final class ConstraintStreamSession implements Session {
             case 2:
                 return constraintFactory.fromUnfiltered(MyFact.class)
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinId, MyFact::getJoinId))
+                                Joiners.equal(MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
+                                Joiners.equal((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
                         .penalize("Join", SimpleScore.ONE);
             case 3:
                 return constraintFactory.fromUnfiltered(MyFact.class)
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinId, MyFact::getJoinId))
+                                Joiners.equal(MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
+                                Joiners.equal((f1, f2) -> f2.getJoinId(), MyFact::getJoinId))
                         .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2, f3) -> f3.getJoinId(), MyFact::getJoinId))
+                                Joiners.equal((f1, f2, f3) -> f3.getJoinId(), MyFact::getJoinId))
                         .penalize("Join", SimpleScore.ONE);
             default:
                 throw new UnsupportedOperationException();
