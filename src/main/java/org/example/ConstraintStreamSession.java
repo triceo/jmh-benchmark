@@ -1,51 +1,35 @@
 package org.example;
 
-import org.example.domain.MyFact;
-import org.example.domain.MySolution;
-import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
-import org.optaplanner.core.api.score.stream.*;
+import org.optaplanner.core.api.score.buildin.hardmediumsoftlong.HardMediumSoftLongScore;
+import org.optaplanner.core.api.score.stream.Constraint;
+import org.optaplanner.core.api.score.stream.ConstraintFactory;
+import org.optaplanner.core.api.score.stream.ConstraintProvider;
+import org.optaplanner.core.api.score.stream.ConstraintStreamImplType;
 import org.optaplanner.core.impl.score.director.stream.ConstraintStreamScoreDirectorFactory;
 import org.optaplanner.core.impl.score.stream.ConstraintSession;
+import org.optaplanner.examples.rocktour.domain.RockShow;
+import org.optaplanner.examples.rocktour.domain.RockTourSolution;
+
+import static org.optaplanner.examples.rocktour.domain.RockTourConstraintConfiguration.UNASSIGNED_SHOW;
 
 final class ConstraintStreamSession implements Session {
 
-    private final ConstraintSession<MySolution, SimpleScore> session;
+    private final ConstraintSession<RockTourSolution, HardMediumSoftLongScore> session;
 
-    private static Constraint getConstraint(ConstraintFactory constraintFactory, int joinCount) {
-        switch (joinCount) {
-            case 1:
-                return constraintFactory.fromUnfiltered(MyFact.class)
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
-                        .penalize("Join", SimpleScore.ONE);
-            case 2:
-                return constraintFactory.fromUnfiltered(MyFact.class)
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
-                        .penalize("Join", SimpleScore.ONE);
-            case 3:
-                return constraintFactory.fromUnfiltered(MyFact.class)
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual(MyFact::getJoinUntilId, MyFact::getId))
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2) -> f2.getJoinUntilId(), MyFact::getId))
-                        .join(constraintFactory.fromUnfiltered(MyFact.class),
-                                Joiners.lessThanOrEqual((f1, f2, f3) -> f3.getJoinUntilId(), MyFact::getId))
-                        .penalize("Join", SimpleScore.ONE);
-            default:
-                throw new UnsupportedOperationException();
-        }
+    private static Constraint getConstraint(ConstraintFactory constraintFactory) {
+        return constraintFactory.fromUnfiltered(RockShow.class)
+                .filter(rockShow -> rockShow.getDate() == null)
+                .filter(rockShow -> rockShow.getBus() != null)
+                .penalizeConfigurable(UNASSIGNED_SHOW);
     }
 
-    public ConstraintStreamSession(ConstraintStreamImplType implType, MySolution solution, int joinCount) {
+    public ConstraintStreamSession(ConstraintStreamImplType implType, RockTourSolution solution) {
         ConstraintProvider constraints = constraintFactory -> new Constraint[]{
-                getConstraint(constraintFactory, joinCount)
+                getConstraint(constraintFactory)
         };
-        ConstraintStreamScoreDirectorFactory<MySolution, ?> scoreDirectorFactory =
+        ConstraintStreamScoreDirectorFactory<RockTourSolution, ?> scoreDirectorFactory =
                 new ConstraintStreamScoreDirectorFactory<>(MyBenchmark.SOLUTION_DESCRIPTOR, constraints, implType);
-        session = (ConstraintSession<MySolution, SimpleScore>) scoreDirectorFactory
+        session = (ConstraintSession<RockTourSolution, HardMediumSoftLongScore>) scoreDirectorFactory
                 .newConstraintStreamingSession(false, solution);
     }
 
@@ -62,7 +46,7 @@ final class ConstraintStreamSession implements Session {
     }
 
     @Override
-    public SimpleScore calculateScore() {
+    public HardMediumSoftLongScore calculateScore() {
         return session.calculateScore(0);
     }
 

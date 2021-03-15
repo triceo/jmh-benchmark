@@ -1,6 +1,6 @@
 package org.example;
 
-import org.optaplanner.core.api.score.buildin.simple.SimpleScore;
+import org.optaplanner.core.api.score.buildin.hardmediumsoftlong.HardMediumSoftLongScore;
 
 interface Session {
 
@@ -8,7 +8,7 @@ interface Session {
 
     int update(Object object);
 
-    SimpleScore calculateScore();
+    HardMediumSoftLongScore calculateScore();
 
     void close();
 }

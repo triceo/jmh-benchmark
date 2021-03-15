@@ -1,29 +1,7 @@
-This version does not use any groupBy, just a bi, tri and quad join with an index and a customizable join ratio.
+This version is a simple from() and two filters.
 
 NOTE: For fair comparison, this version **does not disable scoring**, as that is impossible in Bavet.
 
-    Benchmark                   (algo)  (factCount)  (joinCount)  (joinRatio)   Mode  Cnt      Score     Error  Units
-    MyBenchmark.swapTwo           CS-B          100            1            1  thrpt  100   4840,877 ±  30,358  ops/s
-    MyBenchmark.swapTwo           CS-B          100            1           10  thrpt  100   5580,555 ±  24,223  ops/s
-    MyBenchmark.swapTwo           CS-B          100            1           50  thrpt  100  10242,808 ±  38,869  ops/s
-    MyBenchmark.swapTwo           CS-B          100            2            1  thrpt  100      5,708 ±   0,030  ops/s
-    MyBenchmark.swapTwo           CS-B          100            2           10  thrpt  100      7,464 ±   0,061  ops/s
-    MyBenchmark.swapTwo           CS-B          100            2           50  thrpt  100     39,254 ±   0,300  ops/s
-    MyBenchmark.swapTwo           CS-B         1000            1            1  thrpt  100    211,084 ±   0,772  ops/s
-    MyBenchmark.swapTwo           CS-B         1000            1           10  thrpt  100    237,770 ±   0,665  ops/s
-    MyBenchmark.swapTwo           CS-B         1000            1           50  thrpt  100    485,106 ±   2,549  ops/s
-    MyBenchmark.swapTwo           CS-B        10000            1           50  thrpt  100      6,097 ±   0,461  ops/s
-    MyBenchmark.swapTwo            DRL          100            1            1  thrpt  100  92441,200 ± 434,803  ops/s
-    MyBenchmark.swapTwo            DRL          100            1           10  thrpt  100  49268,340 ±  56,762  ops/s
-    MyBenchmark.swapTwo            DRL          100            1           50  thrpt  100  14228,340 ±  61,782  ops/s
-    MyBenchmark.swapTwo            DRL          100            2            1  thrpt  100  28555,171 ±  80,045  ops/s
-    MyBenchmark.swapTwo            DRL          100            2           10  thrpt  100   2703,569 ±   8,827  ops/s
-    MyBenchmark.swapTwo            DRL          100            2           50  thrpt  100     91,840 ±   0,735  ops/s
-    MyBenchmark.swapTwo            DRL         1000            1            1  thrpt  100  10999,118 ±  21,568  ops/s
-    MyBenchmark.swapTwo            DRL         1000            1           10  thrpt  100   3274,656 ±  24,130  ops/s
-    MyBenchmark.swapTwo            DRL         1000            1           50  thrpt  100    629,332 ±   2,669  ops/s
-    MyBenchmark.swapTwo            DRL         1000            2            1  thrpt  100    502,365 ±   6,342  ops/s
-    MyBenchmark.swapTwo            DRL         1000            2           10  thrpt  100     11,874 ±   0,509  ops/s
-    MyBenchmark.swapTwo            DRL        10000            1            1  thrpt  100    475,778 ±   4,323  ops/s
-    MyBenchmark.swapTwo            DRL        10000            1           10  thrpt  100    147,748 ±   1,631  ops/s
-    MyBenchmark.swapTwo            DRL        10000            1           50  thrpt  100     29,590 ±   0,898  ops/s
+    Benchmark                   (algo)   Mode  Cnt        Score       Error  Units
+    MyBenchmark.swapTwo           CS-B  thrpt   25  2023789,932 ± 89721,259  ops/s
+    MyBenchmark.swapTwo           CS-D  thrpt   25  1059416,585 ± 42961,186  ops/s
