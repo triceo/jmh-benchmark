@@ -2,6 +2,6 @@ This version is a simple from() and two filters.
 
 NOTE: For fair comparison, this version **does not disable scoring**, as that is impossible in Bavet.
 
-    Benchmark                   (algo)   Mode  Cnt        Score       Error  Units
-    MyBenchmark.swapTwo           CS-B  thrpt   25  2023789,932 ± 89721,259  ops/s
-    MyBenchmark.swapTwo           CS-D  thrpt   25  1059416,585 ± 42961,186  ops/s
+    Benchmark                   (algo)   Mode  Cnt        Score        Error  Units
+    MyBenchmark.swapTwo           CS-B  thrpt   25  2026891,297 ± 115732,102  ops/s
+    MyBenchmark.swapTwo           CS-D  thrpt   25  2638713,011 ±  47404,704  ops/s

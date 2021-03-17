@@ -51,7 +51,7 @@ import java.util.Random;
 @BenchmarkMode(Mode.Throughput)
 public class MyBenchmark {
 
-    public static final Random RANDOM = new Random();
+    public static final Random RANDOM = new Random(0L);
     static final SolutionDescriptor<RockTourSolution> SOLUTION_DESCRIPTOR =
             SolutionDescriptor.buildSolutionDescriptor(RockTourSolution.class, RockShow.class, RockStandstill.class);
 
